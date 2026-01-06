@@ -5,6 +5,9 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"os/exec"
+	"path/filepath"
+	"strings"
 
 	"buildium_cli/supabase"
 )
@@ -77,12 +80,13 @@ func project(args []string) {
 func projectTemplate(args []string) {
 	projectFlags := flag.NewFlagSet("project create-template", flag.ExitOnError)
 	projectID := projectFlags.String("projectid", "", "Project ID to use for the template")
+	repoName := projectFlags.String("name", "", "Repository name for the template")
 	lang := projectFlags.String("lang", "", "Programming language for the template")
 	projectFlags.Parse(args)
 
-	if *projectID == "" || *lang == "" {
-		fmt.Println("Project ID and language are required.")
-		fmt.Println("Usage: buildium project create-template --projectid <id> --lang <language>")
+	if *projectID == "" || *lang == "" || *repoName == "" {
+		fmt.Println("Project ID, language, and repository name are required.")
+		fmt.Println("Usage: buildium project create-template --projectid <id> --lang <language> --name <repository name>")
 		os.Exit(1)
 	}
 
@@ -115,7 +119,74 @@ func projectTemplate(args []string) {
 	}
 	fmt.Println("Successfully got tutorial: ", tutorial.TutorialId)
 
-	fmt.Printf("Project ID: %s, Project Image Name: %s, Tutorial Docker Image: %s, language: %s\n", project.ProjectId, project.Name, tutorial.DockerImage, *lang)
+	fmt.Printf("Project ID: %s, Project Name: %s, Tutorial Docker Image: %s, language: %s\n", project.ProjectId, *repoName, tutorial.DockerImage, *lang)
 
-	// TODO: get template based on language and then do a find and replace across the template for these retrieved values
+	var githubUrl string
+	switch *lang {
+	case "go":
+		fmt.Println("Creating Go starter template")
+		githubUrl = "https://github.com/buildium-org/go_template.git"
+	case "typescript":
+		fmt.Println("Creating TypeScript starter template")
+		githubUrl = "https://github.com/buildium-org/ts_template.git"
+	default:
+		fmt.Printf("Unknown language: %s\n", *lang)
+		os.Exit(1)
+	}
+
+	cmd := exec.Command("git", "clone", githubUrl, *repoName)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	if err := cmd.Run(); err != nil {
+		fmt.Printf("Failed to clone repository: %v\n", err)
+		os.Exit(1)
+	}
+	fmt.Println("Successfully cloned repository.")
+
+	// Go through all files in the cloned repo and replace <YOUR_PROJECT_ID> with the real projectID
+
+	err = replaceInDirectory(*repoName, "<YOUR_PROJECT_ID>", project.ProjectId)
+	if err != nil {
+		fmt.Printf("Failed to update <YOUR_PROJECT_ID>: %v\n", err)
+		os.Exit(1)
+	}
+	fmt.Println("Successfully updated <YOUR_PROJECT_ID>.")
+	err = replaceInDirectory(*repoName, "<YOUR_IMAGE_NAME_HERE>", *repoName)
+	if err != nil {
+		fmt.Printf("Failed to update <YOUR_IMAGE_NAME_HERE>: %v\n", err)
+		os.Exit(1)
+	}
+	fmt.Println("Successfully updated <YOUR_IMAGE_NAME_HERE>.")
+
+	err = replaceInDirectory(*repoName, "<TEST_HARNESS_IMAGE_HERE>", tutorial.DockerImage)
+	if err != nil {
+		fmt.Printf("Failed to update <TEST_HARNESS_IMAGE_HERE>: %v\n", err)
+		os.Exit(1)
+	}
+	fmt.Println("Successfully updated <TEST_HARNESS_IMAGE_HERE>.")
+}
+
+func replaceInDirectory(repoPath string, old string, new string) error {
+	return filepath.Walk(repoPath, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		// Only consider regular files
+		if info.Mode().IsRegular() {
+			input, err := os.ReadFile(path)
+			if err != nil {
+				return err
+			}
+			content := string(input)
+			changed := strings.ReplaceAll(content, old, new)
+			if content != changed {
+				err = os.WriteFile(path, []byte(changed), info.Mode().Perm())
+				if err != nil {
+					return err
+				}
+				fmt.Printf("Updated %s in: %s\n", old, path)
+			}
+		}
+		return nil
+	})
 }

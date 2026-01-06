@@ -22,7 +22,25 @@ type SupaClientConfig struct {
 	AuthToken   string
 }
 
-var CONFIG_FILE = ".buildium/config.json"
+func getExecutablePath() string {
+	exePath, err := os.Executable()
+	if err != nil {
+		// fallback to current dir if somehow can't determine exec path
+		return "."
+	}
+	exeDir := exePath
+	// If exePath is not a directory, get its directory
+	if fi, err := os.Stat(exePath); err == nil && !fi.IsDir() {
+		exeDir = strings.TrimSuffix(exePath, "/"+fi.Name())
+	} else if err == nil && fi.IsDir() {
+		exeDir = exePath
+	} else {
+		exeDir = "."
+	}
+	return exeDir
+}
+
+var CONFIG_FILE = getExecutablePath() + string(os.PathSeparator) + ".buildium" + string(os.PathSeparator) + "config.json"
 
 func getDefaultConfig() SupaClientConfig {
 	fmt.Println("No config file found, using default config be sure to run `buildium login` to set your credentials")
@@ -190,7 +208,7 @@ func (c *SupaClient) storeConfig() error {
 		return err
 	}
 
-	dir := ".buildium"
+	dir := getExecutablePath() + string(os.PathSeparator) + ".buildium"
 	if _, statErr := os.Stat(dir); os.IsNotExist(statErr) {
 		mkdirErr := os.MkdirAll(dir, 0700)
 		if mkdirErr != nil {
