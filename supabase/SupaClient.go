@@ -49,6 +49,7 @@ func getDefaultConfig() SupaClientConfig {
 
 func NewSupaClient(ctx context.Context) *SupaClient {
 	config, err := os.ReadFile(CONFIG_FILE)
+	fmt.Println("Using config file: ", CONFIG_FILE)
 	var loadedConfig SupaClientConfig
 	if err != nil {
 		loadedConfig = getDefaultConfig()

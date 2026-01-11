@@ -24,6 +24,8 @@ func main() {
 		login(os.Args[2:])
 	case "project":
 		project(os.Args[2:])
+	case "tutorial":
+		tutorial(os.Args[2:])
 	default:
 		fmt.Printf("Unknown command: %s\n", os.Args[1])
 		os.Exit(1)
@@ -51,6 +53,63 @@ func login(args []string) {
 		os.Exit(1)
 	}
 	fmt.Println("Logged in successfully, token: ", client.Config.AuthToken)
+}
+
+func tutorial(args []string) {
+	ctx := context.Background()
+	client := supabase.NewSupaClient(ctx)
+	err := client.VerifyAuthToken(ctx)
+	if err != nil {
+		fmt.Printf("Failed to verify auth token: %v\n", err)
+		os.Exit(1)
+	}
+
+	if len(args) < 1 {
+		fmt.Println("Usage: buildium tutorial <command> [options]")
+		fmt.Println("Commands: create-template")
+		os.Exit(1)
+	}
+
+	switch args[0] {
+	case "create-template":
+		tutorialTemplate(args[1:])
+	default:
+		fmt.Printf("Unknown command: %s\n", args[0])
+		os.Exit(1)
+	}
+}
+
+func tutorialTemplate(args []string) {
+	tutorialFlags := flag.NewFlagSet("tutorial create-template", flag.ExitOnError)
+	repoName := tutorialFlags.String("name", "", "Repository name for the template")
+	tutorialFlags.Parse(args)
+
+	if *repoName == "" {
+		fmt.Println("Repository name is required.")
+		fmt.Println("Usage: buildium tutorial create-template --name <repository name>")
+		os.Exit(1)
+	}
+
+	fmt.Printf("Creating starter template for repository name: %s\n", *repoName)
+
+	githubUrl := "https://github.com/buildium-org/tutorial_template.git"
+
+	cmd := exec.Command("git", "clone", githubUrl, *repoName)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	if err := cmd.Run(); err != nil {
+		fmt.Printf("Failed to clone repository: %v\n", err)
+		os.Exit(1)
+	}
+	fmt.Println("Successfully cloned repository.")
+
+	// Go through all files in the cloned repo and replace <YOUR_IMAGE_NAME_HERE> with the real image name
+	err := replaceInDirectory(*repoName, "<YOUR_IMAGE_NAME_HERE>", *repoName)
+	if err != nil {
+		fmt.Printf("Failed to update <YOUR_IMAGE_NAME_HERE>: %v\n", err)
+		os.Exit(1)
+	}
+	fmt.Println("Successfully updated <YOUR_IMAGE_NAME_HERE>.")
 }
 
 func project(args []string) {

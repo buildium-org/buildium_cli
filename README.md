@@ -1,6 +1,6 @@
 # Buildium CLI
 
-A command-line interface for interacting with the Buildium platform. Create project templates and manage your Buildium workflow directly from your terminal.
+A command-line interface for interacting with the Buildium platform. Create project templates, scaffold new tutorials, and manage your Buildium workflow directly from your terminal.
 
 ## Prerequisites
 
@@ -79,6 +79,33 @@ This will:
 2. Configure the project ID in all relevant files
 3. Set up the Docker image name based on your project's tutorial
 
+---
+
+### `tutorial create-template`
+
+Scaffold a new tutorial from a starter template. This clones the tutorial template repository and configures it with your tutorial details. Use this command when you want to create a new tutorial for others to complete.
+
+```bash
+buildium tutorial create-template -name <repo-name>
+```
+
+**Flags:**
+| Flag | Required | Description |
+|------|----------|-------------|
+| `-name` | Yes | Name for the cloned repository directory (also used as the Docker image name) |
+
+**Template Source:**
+- Clones from [buildium-org/tutorial_template](https://github.com/buildium-org/tutorial_template)
+
+**Example:**
+```bash
+buildium tutorial create-template -name build-your-own-redis
+```
+
+This will:
+1. Clone the tutorial template repository into `./build-your-own-redis`
+2. Configure the Docker image name in all relevant files
+
 ## Configuration
 
 The CLI stores its configuration in `.buildium/config.json` adjacent to the executable. This file contains:
@@ -86,9 +113,11 @@ The CLI stores its configuration in `.buildium/config.json` adjacent to the exec
 - `Environment` - The target environment (`PROD` by default)
 - `AuthToken` - Your authentication token (set after login)
 
-**Note:** You must run `buildium login` before using commands that require authentication (like `project create-template`).
+**Note:** You must run `buildium login` before using commands that require authentication (like `project create-template` and `tutorial create-template`).
 
 ## Usage Flow
+
+### For Tutorial Participants
 
 1. **Login** to authenticate with Buildium:
    ```bash
@@ -103,6 +132,20 @@ The CLI stores its configuration in `.buildium/config.json` adjacent to the exec
    ```
 
 4. **Start coding** in your new project directory!
+
+### For Tutorial Authors
+
+1. **Login** to authenticate with Buildium:
+   ```bash
+   buildium login -email you@example.com -password yourpassword
+   ```
+
+2. **Generate your tutorial template**:
+   ```bash
+   buildium tutorial create-template -name my-new-tutorial
+   ```
+
+3. **Customize your tutorial** by editing the manifest files, stages, and test harness in your new directory
 
 ## Troubleshooting
 
