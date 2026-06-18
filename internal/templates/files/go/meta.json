@@ -1,0 +1,5 @@
+{
+    "projectId": "<PROJECT_ID_HERE>",
+    "stage": 0,
+    "entrypoint": "app"
+}

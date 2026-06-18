@@ -1,0 +1,9 @@
+{
+    "stages": [
+        {
+            "title": "Stage 1",
+            "mdx": "stage_1.mdx"
+        }
+    ],
+    "homepage": "homepage.mdx"
+}

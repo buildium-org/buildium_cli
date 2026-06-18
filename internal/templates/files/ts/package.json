@@ -1,0 +1,18 @@
+{
+  "name": "<YOUR_IMAGE_NAME_HERE>",
+  "version": "1.0.0",
+  "description": "starter template for javascript",
+  "main": "dist/main.js",
+  "bin": "dist/main.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/main.js",
+    "dev": "ts-node src/main.ts"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3",
+    "@types/node": "^20.10.6",
+    "ts-node": "^10.9.2"
+  }
+}
+
