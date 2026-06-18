@@ -1,15 +1,21 @@
 # Buildium CLI
 
-A command-line interface for interacting with the Buildium platform. Create project templates, scaffold new tutorials, and manage your Buildium workflow directly from your terminal.
+An interactive terminal app for scaffolding new Buildium **tutorials** and
+**solution templates**. The starter templates are packaged inside the binary, so
+generation works completely offline — no `git clone`, no network. Pick a
+template in the wizard, fill in a few fields, and the CLI writes a ready-to-edit
+project to disk with those values substituted in.
+
+Built with [Bubble Tea](https://github.com/charmbracelet/bubbletea).
 
 ## Prerequisites
 
-- **Go** 1.25.5 or later
-- **Git** (required for cloning project templates)
+- **Go** 1.25 or later (only to build the CLI)
+
+That's it — because the templates are embedded, you do **not** need `git` or
+network access to generate a project.
 
 ## Building
-
-Build the CLI from source:
 
 ```bash
 make build
@@ -19,142 +25,96 @@ This compiles the binary to `./buildium` in the current directory.
 
 ## Installation
 
-After building, add the CLI to your PATH for global access:
+After building, add the CLI to your `PATH` for global access:
 
 ```bash
 export PATH=$PATH:/path/to/buildium_cli
 ```
 
-To make this permanent, add the above line to your shell configuration file (`~/.zshrc`, `~/.bashrc`, etc.).
+To make this permanent, add the line to your shell config (`~/.zshrc`,
+`~/.bashrc`, etc.).
 
-## Commands
+## Usage
 
-### `login`
-
-Authenticate with the Buildium platform. Your credentials are stored locally for subsequent commands.
-
-```bash
-buildium login -email <your-email> -password <your-password>
-```
-
-**Flags:**
-| Flag | Required | Description |
-|------|----------|-------------|
-| `-email` | Yes | Your Buildium account email |
-| `-password` | Yes | Your Buildium account password |
-
-**Example:**
-```bash
-buildium login -email user@example.com -password mysecretpassword
-```
-
----
-
-### `project create-template`
-
-Scaffold a new project from a starter template. This clones the appropriate language template and configures it with your project details.
+Launch the wizard:
 
 ```bash
-buildium project create-template -projectid <id> -lang <language> -name <repo-name>
+./buildium
 ```
 
-**Flags:**
-| Flag | Required | Description |
-|------|----------|-------------|
-| `-projectid` | Yes | Your Buildium project ID |
-| `-lang` | Yes | Programming language (`go` or `typescript`) |
-| `-name` | Yes | Name for the cloned repository directory |
+The wizard walks you through four steps:
 
-**Supported Languages:**
-- `go` - Clones from [buildium-org/go_template](https://github.com/buildium-org/go_template)
-- `typescript` - Clones from [buildium-org/ts_template](https://github.com/buildium-org/ts_template)
+1. **Select a template** — choose Tutorial, Solution (Go), or Solution
+   (TypeScript) from the list (`↑`/`↓` to move, `enter` to choose).
+2. **Fill in the fields** — enter a destination directory plus the fields the
+   chosen template needs (`tab`/`↑`/`↓` to move between fields, `enter` to
+   advance / submit). Required fields can't be left blank.
+3. **Review** — confirm the template, destination, and values (`enter`/`y` to
+   generate, `esc`/`n` to go back).
+4. **Done** — the project is written to your destination directory with every
+   field substituted in. The CLI refuses to write into a directory that already
+   exists and isn't empty.
 
-**Example:**
-```bash
-buildium project create-template -projectid abc123 -lang go -name my-redis-clone
-```
+Press `ctrl+c` to quit at any point.
 
-This will:
-1. Clone the Go template repository into `./my-redis-clone`
-2. Configure the project ID in all relevant files
-3. Set up the Docker image name based on your project's tutorial
+## Templates and their fields
 
----
+Each template ships with placeholder tokens (`<..._HERE>`) in its files; the
+wizard replaces them with the values you enter.
 
-### `tutorial create-template`
+| Template | Field | Replaces | Notes |
+|----------|-------|----------|-------|
+| **Tutorial** | Tutorial name | `<YOUR_IMAGE_NAME_HERE>` | The test-harness image is tagged `<name>_harness`. |
+| **Solution (Go)** | Buildium project ID | `<PROJECT_ID_HERE>` | From the project page on the Buildium website. |
+| | Docker image name | `<YOUR_IMAGE_NAME_HERE>` | Tag for the image you build and run. |
+| | Test harness base image | `<TEST_HARNESS_IMAGE_HERE>` | The harness image published by the tutorial author. |
+| **Solution (TypeScript)** | Buildium project ID | `<PROJECT_ID_HERE>` | From the project page on the Buildium website. |
+| | Docker image name | `<YOUR_IMAGE_NAME_HERE>` | Tag for the image you build and run. |
+| | Test harness base image | `<TEST_HARNESS_IMAGE_HERE>` | The harness image published by the tutorial author. |
 
-Scaffold a new tutorial from a starter template. This clones the tutorial template repository and configures it with your tutorial details. Use this command when you want to create a new tutorial for others to complete.
+The source templates live in these repositories and are vendored into the CLI:
 
-```bash
-buildium tutorial create-template -name <repo-name>
-```
+- Tutorial — [buildium-org/tutorial_template](https://github.com/buildium-org/tutorial_template)
+- Go solution — [buildium-org/go_template](https://github.com/buildium-org/go_template)
+- TypeScript solution — [buildium-org/ts_template](https://github.com/buildium-org/ts_template)
 
-**Flags:**
-| Flag | Required | Description |
-|------|----------|-------------|
-| `-name` | Yes | Name for the cloned repository directory (also used as the Docker image name) |
+## Usage flow
 
-**Template Source:**
-- Clones from [buildium-org/tutorial_template](https://github.com/buildium-org/tutorial_template)
+### For tutorial authors
 
-**Example:**
-```bash
-buildium tutorial create-template -name build-your-own-redis
-```
+1. Run `./buildium`, choose **Tutorial template**, and enter a tutorial name.
+2. Customize the generated tutorial — edit the manifest, stages, and step
+   harness in your new directory.
 
-This will:
-1. Clone the tutorial template repository into `./build-your-own-redis`
-2. Configure the Docker image name in all relevant files
+### For tutorial participants
 
-## Configuration
+1. Create a project on the Buildium website and note your project ID.
+2. Run `./buildium`, choose **Solution (Go)** or **Solution (TypeScript)**, and
+   enter your project ID, image name, and the harness image from the tutorial.
+3. Start coding in your new project directory.
 
-The CLI stores its configuration in `.buildium/config.json` adjacent to the executable. This file contains:
+## Maintaining the templates
 
-- `Environment` - The target environment (`PROD` by default)
-- `AuthToken` - Your authentication token (set after login)
+The vendored template trees live under
+[`internal/templates/files/`](internal/templates/files/) (one directory per
+template key: `tutorial`, `go`, `ts`). To update a template, edit the files
+there and rebuild.
 
-**Note:** You must run `buildium login` before using commands that require authentication (like `project create-template` and `tutorial create-template`).
+Two conventions apply to the vendored files:
 
-## Usage Flow
-
-### For Tutorial Participants
-
-1. **Login** to authenticate with Buildium:
-   ```bash
-   buildium login -email you@example.com -password yourpassword
-   ```
-
-2. **Create a project** on the Buildium web platform and note your project ID
-
-3. **Generate your starter template**:
-   ```bash
-   buildium project create-template -projectid <your-project-id> -lang go -name my-project
-   ```
-
-4. **Start coding** in your new project directory!
-
-### For Tutorial Authors
-
-1. **Login** to authenticate with Buildium:
-   ```bash
-   buildium login -email you@example.com -password yourpassword
-   ```
-
-2. **Generate your tutorial template**:
-   ```bash
-   buildium tutorial create-template -name my-new-tutorial
-   ```
-
-3. **Customize your tutorial** by editing the manifest files, stages, and test harness in your new directory
+- **Placeholder tokens** use the upstream `<UPPER_SNAKE_HERE>` markers. Add a
+  matching `Field` in [`internal/templates/catalog.go`](internal/templates/catalog.go)
+  for any new token so the wizard prompts for it.
+- **Go source files** (`go.mod`, `*.go`) are stored with a trailing `.tmpl`
+  suffix (e.g. `main.go.tmpl`). This keeps a nested `go.mod` from being excluded
+  by `go:embed` and keeps stray `.go` files out of this module's build. The
+  generator strips the `.tmpl` suffix when it writes the project.
 
 ## Troubleshooting
 
-**"Not logged in" error**  
-Run `buildium login` with your credentials before using other commands.
+**"destination already exists and is not empty"**
+Choose a destination directory that doesn't exist yet (or is empty).
 
-**"Failed to get project" error**  
-Verify your project ID is correct and that you have access to the project.
-
-**Clone fails**  
-Ensure you have git installed and network access to GitHub.
-
+**The UI doesn't render / exits immediately**
+The wizard needs an interactive terminal (a TTY). Run it directly in your
+terminal rather than through a pipe or non-interactive shell.
