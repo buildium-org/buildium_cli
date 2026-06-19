@@ -1,0 +1,67 @@
+# GoReleaser config for the buildium CLI.
+# Docs: https://goreleaser.com
+#
+# Local snapshot build (no publish):
+#   goreleaser build --snapshot --clean
+#   goreleaser release --snapshot --skip=publish --clean
+version: 2
+
+project_name: buildium
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - id: buildium
+    main: ./main.go
+    binary: buildium
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - darwin
+      - linux
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    # darwin/amd64 = Mac Intel, darwin/arm64 = Apple Silicon,
+    # linux/{amd64,arm64}, windows/{amd64,arm64} -> six targets.
+    ldflags:
+      - -s -w
+      - -X buildium_cli/internal/version.Version={{ .Version }}
+      - -X buildium_cli/internal/version.Commit={{ .Commit }}
+      - -X buildium_cli/internal/version.Date={{ .Date }}
+
+archives:
+  - id: buildium
+    ids:
+      - buildium
+    # Stable, predictable asset names so the website can link to
+    # releases/latest/download/buildium_<os>_<arch>.<ext>
+    name_template: "buildium_{{ .Os }}_{{ .Arch }}"
+    formats:
+      - tar.gz
+    format_overrides:
+      - goos: windows
+        formats:
+          - zip
+
+checksum:
+  name_template: checksums.txt
+
+snapshot:
+  version_template: "{{ incpatch .Version }}-snapshot"
+
+changelog:
+  use: github
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+      - "^chore:"
+
+release:
+  draft: false
+  prerelease: auto
