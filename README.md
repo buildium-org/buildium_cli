@@ -8,12 +8,52 @@ project to disk with those values substituted in.
 
 Built with [Bubble Tea](https://github.com/charmbracelet/bubbletea).
 
+## Download
+
+Pre-built binaries for every supported platform are attached to each
+[GitHub release](https://github.com/buildium-org/buildium_cli/releases). The
+links below always resolve to the **latest** release, so they're safe to bookmark
+or host elsewhere:
+
+| Platform | Architecture | Download |
+|----------|--------------|----------|
+| macOS (Apple Silicon) | arm64 | [buildium_darwin_arm64.tar.gz](https://github.com/buildium-org/buildium_cli/releases/latest/download/buildium_darwin_arm64.tar.gz) |
+| macOS (Intel) | amd64 | [buildium_darwin_amd64.tar.gz](https://github.com/buildium-org/buildium_cli/releases/latest/download/buildium_darwin_amd64.tar.gz) |
+| Linux | amd64 | [buildium_linux_amd64.tar.gz](https://github.com/buildium-org/buildium_cli/releases/latest/download/buildium_linux_amd64.tar.gz) |
+| Linux | arm64 | [buildium_linux_arm64.tar.gz](https://github.com/buildium-org/buildium_cli/releases/latest/download/buildium_linux_arm64.tar.gz) |
+| Windows | amd64 | [buildium_windows_amd64.zip](https://github.com/buildium-org/buildium_cli/releases/latest/download/buildium_windows_amd64.zip) |
+| Windows | arm64 | [buildium_windows_arm64.zip](https://github.com/buildium-org/buildium_cli/releases/latest/download/buildium_windows_arm64.zip) |
+
+Checksums for every asset are published alongside them as
+[checksums.txt](https://github.com/buildium-org/buildium_cli/releases/latest/download/checksums.txt).
+
+After downloading, extract the archive and run the `buildium` binary. On
+**macOS** and **Linux** make it executable first, and on macOS clear the
+quarantine flag so Gatekeeper doesn't block the unsigned binary:
+
+```bash
+tar -xzf buildium_darwin_arm64.tar.gz
+chmod +x buildium
+xattr -d com.apple.quarantine buildium   # macOS only
+./buildium
+```
+
+Confirm the version with `./buildium --version`.
+
+> Want the binary from an in-flight change? Every pull request builds the same
+> set of binaries and uploads them as **artifacts** under that PR's run in the
+> [Actions tab](https://github.com/buildium-org/buildium_cli/actions) (look for
+> `buildium-binaries`). These are unversioned snapshot builds for testing.
+
 ## Prerequisites
 
-- **Go** 1.25 or later (only to build the CLI)
+- **Go** 1.25 or later (only to build the CLI from source)
 
 That's it — because the templates are embedded, you do **not** need `git` or
 network access to generate a project.
+
+> Most users should grab a [pre-built binary](#download) instead — building from
+> source is only needed if you're modifying the CLI or its templates.
 
 ## Building
 
@@ -109,6 +149,23 @@ Two conventions apply to the vendored files:
   suffix (e.g. `main.go.tmpl`). This keeps a nested `go.mod` from being excluded
   by `go:embed` and keeps stray `.go` files out of this module's build. The
   generator strips the `.tmpl` suffix when it writes the project.
+
+## Releasing
+
+Releases are cut by pushing a version tag. The
+[`release` workflow](.github/workflows/release.yml) then cross-compiles every
+platform with [GoReleaser](https://goreleaser.com) and publishes a GitHub Release
+with all the archives plus `checksums.txt` attached:
+
+```bash
+git tag v0.1.0
+git push origin v0.1.0
+```
+
+The version you tag is stamped into the binary (`buildium --version`). Because
+the release assets keep stable names, the
+[download links above](#download) automatically point at the new release once it
+finishes publishing — nothing on your website needs to change.
 
 ## Troubleshooting
 
