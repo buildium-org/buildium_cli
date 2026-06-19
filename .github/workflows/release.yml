@@ -1,0 +1,40 @@
+# Publishes a cross-platform GitHub Release when a version tag is pushed.
+#
+# Cut a release with:
+#   git tag v0.1.0
+#   git push origin v0.1.0
+#
+# GoReleaser builds all six OS/arch archives + checksums.txt and attaches them
+# to the release. Each asset is then reachable at a stable URL:
+#   https://github.com/buildium-org/buildium_cli/releases/latest/download/buildium_<os>_<arch>.<ext>
+name: release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  goreleaser:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@v6
+        with:
+          version: "~> v2"
+          args: release --clean
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
