@@ -1,3 +1,6 @@
 buildium
 main
 .buildium
+
+# GoReleaser build output
+dist/
