@@ -33,9 +33,9 @@ func selectGo(t *testing.T) Model {
 	if m.chosen.Key != "go" {
 		t.Fatalf("expected chosen template 'go', got %q", m.chosen.Key)
 	}
-	// inputs: destination + 3 fields
-	if len(m.inputs) != 4 {
-		t.Fatalf("expected 4 inputs, got %d", len(m.inputs))
+	// inputs: destination + 2 fields
+	if len(m.inputs) != 3 {
+		t.Fatalf("expected 3 inputs, got %d", len(m.inputs))
 	}
 	return m
 }
@@ -59,9 +59,8 @@ func TestFullFlowGeneratesProject(t *testing.T) {
 
 	m := selectGo(t)
 	m.inputs[0].SetValue(dest)
-	m.inputs[1].SetValue("proj-1")
-	m.inputs[2].SetValue("my-image")
-	m.inputs[3].SetValue("my_harness")
+	m.inputs[1].SetValue("my-image")
+	m.inputs[2].SetValue("my_harness")
 	m.focus = len(m.inputs) - 1 // so the next enter submits rather than advances
 
 	m, _ = send(t, m, enterKey)
@@ -83,12 +82,12 @@ func TestFullFlowGeneratesProject(t *testing.T) {
 	}
 
 	// The project should exist with substituted values.
-	data, err := os.ReadFile(filepath.Join(dest, "meta.json"))
+	data, err := os.ReadFile(filepath.Join(dest, "Makefile"))
 	if err != nil {
-		t.Fatalf("read generated meta.json: %v", err)
+		t.Fatalf("read generated Makefile: %v", err)
 	}
-	if !strings.Contains(string(data), "proj-1") {
-		t.Errorf("meta.json missing project id: %s", data)
+	if !strings.Contains(string(data), "my-image") {
+		t.Errorf("Makefile missing substituted image name: %s", data)
 	}
 	if !strings.Contains(m.resultView(), "✓") {
 		t.Errorf("result view should report success, got: %s", m.resultView())
@@ -103,9 +102,8 @@ func TestDestinationExistsErrorSurfaced(t *testing.T) {
 
 	m := selectGo(t)
 	m.inputs[0].SetValue(dest)
-	m.inputs[1].SetValue("p")
-	m.inputs[2].SetValue("i")
-	m.inputs[3].SetValue("h")
+	m.inputs[1].SetValue("i")
+	m.inputs[2].SetValue("h")
 	m.focus = len(m.inputs) - 1
 
 	m, _ = send(t, m, enterKey)  // -> confirm

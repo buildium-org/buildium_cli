@@ -105,11 +105,10 @@ wizard replaces them with the values you enter.
 | Template | Field | Replaces | Notes |
 |----------|-------|----------|-------|
 | **Tutorial** | Tutorial name | `<YOUR_IMAGE_NAME_HERE>` | The test-harness image is tagged `<name>_harness`. |
-| **Solution (Go)** | Buildium project ID | `<PROJECT_ID_HERE>` | From the project page on the Buildium website. |
-| | Docker image name | `<YOUR_IMAGE_NAME_HERE>` | Tag for the image you build and run. |
+| | Docker username | `<YOUR_DOCKER_USERNAME_HERE>` | Used when tagging and pushing the harness image. |
+| **Solution (Go)** | Docker image name | `<YOUR_IMAGE_NAME_HERE>` | Tag for the image you build and run. |
 | | Test harness base image | `<TEST_HARNESS_IMAGE_HERE>` | The harness image published by the tutorial author. |
-| **Solution (TypeScript)** | Buildium project ID | `<PROJECT_ID_HERE>` | From the project page on the Buildium website. |
-| | Docker image name | `<YOUR_IMAGE_NAME_HERE>` | Tag for the image you build and run. |
+| **Solution (TypeScript)** | Docker image name | `<YOUR_IMAGE_NAME_HERE>` | Tag for the image you build and run. |
 | | Test harness base image | `<TEST_HARNESS_IMAGE_HERE>` | The harness image published by the tutorial author. |
 
 The source templates live in these repositories and are vendored into the CLI:

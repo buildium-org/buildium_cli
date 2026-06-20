@@ -12,9 +12,9 @@ import "io/fs"
 // eye. The generator replaces every occurrence of a field's Token with the
 // user-supplied value.
 const (
-	tokenImageName    = "<YOUR_IMAGE_NAME_HERE>"
-	tokenHarnessImage = "<TEST_HARNESS_IMAGE_HERE>"
-	tokenProjectID    = "<PROJECT_ID_HERE>"
+	tokenImageName      = "<YOUR_IMAGE_NAME_HERE>"
+	tokenHarnessImage   = "<TEST_HARNESS_IMAGE_HERE>"
+	tokenDockerUsername = "<YOUR_DOCKER_USERNAME_HERE>"
 )
 
 // Field is one replaceable value in a template. The generator replaces every
@@ -59,6 +59,13 @@ var (
 		Help:     "Base name for the tutorial; the harness image is tagged <name>_harness",
 		Required: true,
 	}
+	fieldDockerUsername = Field{
+		Key:      "docker_username",
+		Token:    tokenDockerUsername,
+		Label:    "Docker username",
+		Help:     "Your Docker username",
+		Required: true,
+	}
 	fieldImageName = Field{
 		Key:      "image_name",
 		Token:    tokenImageName,
@@ -73,13 +80,6 @@ var (
 		Help:     "The harness image published by the tutorial author (e.g. my-tutorial_harness)",
 		Required: true,
 	}
-	fieldProjectID = Field{
-		Key:      "project_id",
-		Token:    tokenProjectID,
-		Label:    "Buildium project ID",
-		Help:     "Found on the project page on the Buildium website",
-		Required: true,
-	}
 )
 
 // Catalog returns every template the CLI can generate, in display order. It is
@@ -90,17 +90,17 @@ func Catalog() []Template {
 		{
 			Key:    "tutorial",
 			Label:  "Tutorial template",
-			Fields: []Field{fieldTutorialName},
+			Fields: []Field{fieldTutorialName, fieldDockerUsername},
 		},
 		{
 			Key:    "go",
 			Label:  "Solution template (Go)",
-			Fields: []Field{fieldProjectID, fieldImageName, fieldHarnessImage},
+			Fields: []Field{fieldImageName, fieldHarnessImage},
 		},
 		{
 			Key:    "ts",
 			Label:  "Solution template (TypeScript)",
-			Fields: []Field{fieldProjectID, fieldImageName, fieldHarnessImage},
+			Fields: []Field{fieldImageName, fieldHarnessImage},
 		},
 	}
 }

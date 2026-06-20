@@ -73,7 +73,6 @@ func TestGenerateGoSubstitutesKnownFiles(t *testing.T) {
 	tmpl := mustTemplate(t, "go")
 	dest := filepath.Join(t.TempDir(), "proj")
 	vals := map[string]string{
-		"project_id":    "proj-123",
 		"image_name":    "my-app",
 		"harness_image": "my-tut_harness",
 	}
@@ -92,7 +91,6 @@ func TestGenerateGoSubstitutesKnownFiles(t *testing.T) {
 		"Dockerfile":         {"my-tut_harness"},
 		"docker-compose.yml": {"my-app"},
 		"Makefile":           {"my-app"},
-		"meta.json":          {"proj-123"},
 	}
 	for file, wants := range checks {
 		data, err := os.ReadFile(filepath.Join(dest, file))
